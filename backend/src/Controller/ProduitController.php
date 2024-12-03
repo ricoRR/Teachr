@@ -2,14 +2,14 @@
 
 namespace App\Controller;
 
-use App\Entity\Produit;
 use App\Repository\ProduitRepository;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Serializer\SerializerInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Categorie;
+use App\Entity\Produit;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class ProduitController extends AbstractController
 {
@@ -22,42 +22,58 @@ class ProduitController extends AbstractController
         $this->produitRepository = $produitRepository;
     }
 
-    #[Route('/produits', name: 'all_produit', methods:['GET'])]
+    #[Route('/produits', name: 'all_produit', methods: ['GET'])]
     public function show_all()
     {
-        $produit = $this->produitRepository->findAll();
-        return $this->json($produit);
+        $produits = $this->produitRepository->findAll();
+        return $this->json($produits, context: ['groups' => 'produit:read']);
     }
 
     #[Route('/produits', name: 'create_produit', methods: ['POST'])]
     public function create(Request $request, SerializerInterface $serializer)
     {
+
         $data = json_decode($request->getContent(), true);
-        $produit = $serializer->deserialize(json_encode($data), Produit::class, 'json');
+
+        if ($data === null) {
+            return $this->json(['error' => 'Invalid JSON'], 400);
+        }
+
+        $produit = $serializer->deserialize($request->getContent(), Produit::class, 'json');
+
+        if (isset($data['categorie']['id'])) {
+            $categorie = $this->entityManager->getRepository(Categorie::class)->find($data['categorie']['id']);
+            if (!$categorie) {
+                return $this->json(['error' => 'Category not found'], 404);
+            }
+            $produit->setCategorie($categorie);
+        }
 
         $this->entityManager->persist($produit);
         $this->entityManager->flush();
 
-        return new JsonResponse(['message' => 'Product created', 'id' => $produit->getId()], 201);
+        return $this->json(['message' => 'Product created', 'id' => $produit->getId()], 201);
     }
 
     #[Route('/produits/{id}', name: 'get_produit', methods: ['GET'])]
     public function show($id)
     {
         $produit = $this->produitRepository->find($id);
+
         if (!$produit) {
-            return new JsonResponse(['error' => 'Product not found'], 404);
+            return $this->json(['error' => 'Product not found'], 404);
         }
 
-        return $this->json($produit);
+        return $this->json($produit, context: ['groups' => 'produit:read']);
     }
 
     #[Route('/produits/{id}', name: 'update_produit', methods: ['PUT'])]
     public function update($id, Request $request)
     {
         $produit = $this->produitRepository->find($id);
+
         if (!$produit) {
-            return new JsonResponse(['error' => 'Product not found'], 404);
+            return $this->json(['error' => 'Product not found'], 404);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -67,20 +83,21 @@ class ProduitController extends AbstractController
 
         $this->entityManager->flush();
 
-        return new JsonResponse(['message' => 'Product updated']);
+        return $this->json(['message' => 'Product updated'], 200);
     }
 
     #[Route('/produits/{id}', name: 'delete_produit', methods: ['DELETE'])]
     public function delete($id)
     {
         $produit = $this->produitRepository->find($id);
+
         if (!$produit) {
-            return new JsonResponse(['error' => 'Product not found'], 404);
+            return $this->json(['error' => 'Product not found'], 404);
         }
 
         $this->entityManager->remove($produit);
         $this->entityManager->flush();
 
-        return new JsonResponse(['message' => 'Product deleted']);
+        return $this->json(['message' => 'Product deleted'], 200);
     }
 }

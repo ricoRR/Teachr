@@ -5,23 +5,26 @@ namespace App\Entity;
 use App\Repository\CategorieRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CategorieRepository::class)]
 class Categorie
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['categorie:read', 'produit:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['categorie:read', 'produit:read'])]
     private ?string $nom = null;
 
-    /**
-     * @var Collection<int, Produit>
-     */
     #[ORM\OneToMany(targetEntity: Produit::class, mappedBy: 'categorie')]
+    #[MaxDepth(1)]
+    #[Groups(['categorie:read'])]
     private Collection $produits;
 
     public function __construct()
@@ -46,9 +49,6 @@ class Categorie
         return $this;
     }
 
-    /**
-     * @return Collection<int, Produit>
-     */
     public function getProduits(): Collection
     {
         return $this->produits;
@@ -67,7 +67,6 @@ class Categorie
     public function removeProduit(Produit $produit): static
     {
         if ($this->produits->removeElement($produit)) {
-            // set the owning side to null (unless already changed)
             if ($produit->getCategorie() === $this) {
                 $produit->setCategorie(null);
             }
