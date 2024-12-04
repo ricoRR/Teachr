@@ -22,7 +22,7 @@ $ symfony console doctrine:migrations:migrate
 
 Lancer le serveur :
 
-symfony server:start
+$ symfony server:start
 
 
 2. Frontend - Interface React
@@ -33,11 +33,12 @@ $ cd frontend
 
 Installer les dépendances :
 
-$npm install
+$ npm install
 
-Lancer l'application React :
+Lancer l'application React:
 
-npm start
+$ npm run build
+$ npm run preview
 
 
 
