@@ -34,7 +34,7 @@ const CreateProduct = () => {
     setSuccessMessage("")
     setErrors("")
 
-    if(!formData.nom || !formData.description || !formData.prix || !formData.categorieId) {
+    if (!formData.nom || !formData.description || !formData.prix || !formData.categorieId) {
       setErrors({ api: "Veuillez remplir tout les champs" })
     } else {
       axios
@@ -42,7 +42,7 @@ const CreateProduct = () => {
           nom: formData.nom,
           description: formData.description,
           prix: parseFloat(formData.prix),
-          categorie: {id: formData.categorieId},
+          categorie: { id: formData.categorieId },
         }, {
           headers: {
             "Content-Type": "application/json"
@@ -56,8 +56,8 @@ const CreateProduct = () => {
           console.error("Error creating product:", error.response.status);
           setErrors({ api: "Une erreur est survenue lors de la création du produit." });
         });
-      };
-    }
+    };
+  }
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
       <h2>Créer un Produit</h2>
@@ -108,7 +108,7 @@ const CreateProduct = () => {
               onChange={handleChange}
               style={{ width: "100%", padding: "8px", marginTop: "5px" }}
             >
-              <option value="">Sélectionnez une catégorie</option>      
+              <option value="">Sélectionnez une catégorie</option>
               {categories.map((categorie) => (
                 <option key={categorie.id} value={categorie.id}>
                   {categorie.nom}
