@@ -28,47 +28,36 @@ const CreateProduct = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.nom) newErrors.nom = "Le nom est obligatoire.";
-    if (!formData.description) newErrors.description = "La description est obligatoire.";
-    if (!formData.prix) newErrors.prix = "Le prix est obligatoire.";
-    else if (isNaN(formData.prix) || Number(formData.prix) <= 0)
-      newErrors.prix = "Le prix doit être un nombre positif.";
-    if (!formData.categorieId) newErrors.categorieId = "La catégorie est obligatoire.";
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = (e) => {
-    e.preventDefault();
-    setSuccessMessage("");
-    setErrors({});
 
-    if (!validate()) return;
+    e.preventDefault()
+    setSuccessMessage("")
+    setErrors("")
 
-    axios
-      .post("https://localhost:8000/produits", {
-        nom: formData.nom,
-        description: formData.description,
-        prix: parseFloat(formData.prix),
-        categorie: {id: formData.categorieId},
-      }, {
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
-      .then(() => {
-        setSuccessMessage("Produit créé avec succès !");
-        setFormData({ nom: "", description: "", prix: "", categorieId: "" });
-      })
-      .catch((error) => {
-        console.error("Error creating product:", error);
-        setErrors({ api: "Une erreur est survenue lors de la création du produit." });
-      });
-    };
-
+    if(!formData.nom || !formData.description || !formData.prix || !formData.categorieId) {
+      setErrors({ api: "Veuillez remplir tout les champs" })
+    } else {
+      axios
+        .post("https://localhost:8000/produits", {
+          nom: formData.nom,
+          description: formData.description,
+          prix: parseFloat(formData.prix),
+          categorie: {id: formData.categorieId},
+        }, {
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+        .then(() => {
+          setSuccessMessage("Produit créé avec succès !")
+          setFormData({ nom: "", description: "", prix: "", categorieId: "" });
+        })
+        .catch((error) => {
+          console.error("Error creating product:", error.response.status);
+          setErrors({ api: "Une erreur est survenue lors de la création du produit." });
+        });
+      };
+    }
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
       <h2>Créer un Produit</h2>
@@ -86,7 +75,6 @@ const CreateProduct = () => {
               style={{ width: "100%", padding: "8px", marginTop: "5px" }}
             />
           </label>
-          {errors.nom && <p style={{ color: "red" }}>{errors.nom}</p>}
         </div>
         <div style={{ marginBottom: "15px" }}>
           <label>
@@ -98,7 +86,6 @@ const CreateProduct = () => {
               style={{ width: "100%", padding: "8px", marginTop: "5px" }}
             />
           </label>
-          {errors.description && <p style={{ color: "red" }}>{errors.description}</p>}
         </div>
         <div style={{ marginBottom: "15px" }}>
           <label>
@@ -111,7 +98,6 @@ const CreateProduct = () => {
               style={{ width: "100%", padding: "8px", marginTop: "5px" }}
             />
           </label>
-          {errors.prix && <p style={{ color: "red" }}>{errors.prix}</p>}
         </div>
         <div style={{ marginBottom: "15px" }}>
           <label>
@@ -130,7 +116,6 @@ const CreateProduct = () => {
               ))}
             </select>
           </label>
-          {errors.categorieId && <p style={{ color: "red" }}>{errors.categorieId}</p>}
         </div>
         <button type="submit" style={{ padding: "10px 20px", backgroundColor: "blue", color: "white" }}>
           Créer
